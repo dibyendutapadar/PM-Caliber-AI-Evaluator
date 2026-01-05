@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TurnData } from '../types';
-import { Send, User, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Send, User, CheckCircle2, ArrowRight, Mic, MicOff } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ChatInterfaceProps {
@@ -21,6 +21,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   isGameOver 
 }) => {
   const [userInput, setUserInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   
   // If the current turn has feedback, we are in "Review" mode for that turn.
@@ -32,11 +34,77 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history.length, isFeedbackMode, isLoading]);
 
+  useEffect(() => {
+    // Cleanup recognition on unmount
+    return () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+        return;
+      }
+      
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onError = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+      };
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+            setUserInput(prev => {
+                const cleanTranscript = finalTranscript.trim();
+                if (!cleanTranscript) return prev;
+                const needsSpace = prev.length > 0 && !prev.endsWith(' ');
+                return prev + (needsSpace ? ' ' : '') + cleanTranscript;
+            });
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userInput.trim() || isLoading) return;
     onAnswer(userInput);
     setUserInput('');
+    if (isListening) {
+        recognitionRef.current?.stop();
+        setIsListening(false);
+    }
   };
 
   const renderFeedback = (feedback: string) => (
@@ -179,8 +247,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     <textarea 
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="Type your strategic response here..."
-                        className="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 pl-4 pr-16 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none h-24"
+                        placeholder={isListening ? "Listening... (speak now)" : "Type your strategic response here..."}
+                        className={`w-full bg-slate-800 border-2 text-white rounded-xl py-4 pl-4 pr-24 focus:outline-none focus:ring-1 transition-all resize-none h-24 ${isListening ? 'border-red-500/50 ring-red-500/50 animate-pulse' : 'border-slate-700 focus:border-indigo-500 focus:ring-indigo-500'}`}
                         onKeyDown={(e) => {
                             if(e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -188,6 +256,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             }
                         }}
                     />
+                    
+                    {/* Dictation Button */}
+                    <button
+                        type="button"
+                        onClick={toggleListening}
+                        className={`absolute right-14 top-3 p-2 rounded-lg transition-colors ${isListening ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
+                        title={isListening ? "Stop Listening" : "Start Dictation"}
+                    >
+                        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                    </button>
+
+                    {/* Send Button */}
                     <button 
                         type="submit" 
                         disabled={!userInput.trim()}
