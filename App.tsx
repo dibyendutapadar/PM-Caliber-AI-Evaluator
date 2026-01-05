@@ -18,6 +18,7 @@ const App: React.FC = () => {
     currentScores: INITIAL_SCORES
   });
 
+  const [pendingNextTurn, setPendingNextTurn] = useState<TurnData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleStart = async (industry: string, product: string, questionCount: number, startingLevel: Level) => {
@@ -112,6 +113,8 @@ const App: React.FC = () => {
       const updatedHistory = [...currentHistory];
       updatedHistory[lastTurnIndex].feedback = aiResponse.feedback;
       updatedHistory[lastTurnIndex].reasoning = aiResponse.reasoning;
+      updatedHistory[lastTurnIndex].overallScores = aiResponse.scores; // Update scores for this turn record
+      updatedHistory[lastTurnIndex].level = aiResponse.level; // Update level for this turn record
       
       // Check for Game Over based on totalQuestions
       const isGameOver = gameState.currentTurnIndex >= gameState.totalQuestions - 1;
@@ -125,7 +128,8 @@ const App: React.FC = () => {
             history: updatedHistory
          }));
       } else {
-        // Create Next Turn
+        // Prepare Next Turn but DO NOT add to history yet.
+        // Wait for user to review feedback.
         const nextTurn: TurnData = {
             question: aiResponse.nextQuestion,
             overallScores: aiResponse.scores,
@@ -133,12 +137,13 @@ const App: React.FC = () => {
             reasoning: aiResponse.reasoning
         };
 
+        setPendingNextTurn(nextTurn);
+        
         setGameState(prev => ({
             ...prev,
-            currentTurnIndex: prev.currentTurnIndex + 1,
             currentLevel: aiResponse.level,
             currentScores: aiResponse.scores,
-            history: [...updatedHistory, nextTurn]
+            history: updatedHistory
         }));
       }
 
@@ -147,6 +152,17 @@ const App: React.FC = () => {
       alert("Something went wrong analyzing your answer.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (pendingNextTurn) {
+        setGameState(prev => ({
+            ...prev,
+            currentTurnIndex: prev.currentTurnIndex + 1,
+            history: [...prev.history, pendingNextTurn]
+        }));
+        setPendingNextTurn(null);
     }
   };
 
@@ -161,6 +177,7 @@ const App: React.FC = () => {
         currentLevel: 'APM',
         currentScores: INITIAL_SCORES
     });
+    setPendingNextTurn(null);
   };
 
   if (gameState.status === 'onboarding') {
@@ -184,6 +201,7 @@ const App: React.FC = () => {
         currentTurn={gameState.history[gameState.history.length - 1]} 
         history={gameState.history}
         onAnswer={handleAnswer}
+        onNext={handleNextQuestion}
         isLoading={isLoading}
         isGameOver={false}
       />

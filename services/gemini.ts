@@ -56,7 +56,8 @@ export const startAssessment = async (industry: string, product: string, startin
     4. Business Acumen & Ethics
 
     Generate the FIRST question. 
-    It MUST be a variation of this specific scenario, adapted to the chosen industry and the "${startingLevel}" seniority:
+    It MUST be a variation of this specific scenario, adapted to the chosen industry and the "${startingLevel}" seniority. It should be a specific one not generic like "wants to add a feature", you have to mention what feature or what capabilities.
+    End the question by saying "If you require any more information or data you can ask for the same" to make user know that clarificatory questions can be asked.
     
     Structure:
     "The [Stakeholder appropriate for ${startingLevel}] approaches you and says, we want [feature/capability] for [reason], and we need to do the same immediately to [benefit].' How do you respond and what is your first step?"
