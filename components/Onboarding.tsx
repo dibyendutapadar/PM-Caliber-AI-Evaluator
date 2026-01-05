@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, ArrowRight, Briefcase } from 'lucide-react';
+import { Target, ArrowRight, Briefcase, Globe } from 'lucide-react';
 import { Level, LEVELS } from '../types';
 
 interface OnboardingProps {
@@ -32,11 +32,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, isLoading }) =>
             <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/20">
                 <Target className="text-white w-8 h-8" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">PM Caliber AI</h1>
-            <p className="text-slate-400 text-sm">
+            <h1 className="text-3xl font-bold text-white mb-2">PM Caliber AI Evaluator</h1>
+            <p className="text-slate-400 text-sm mb-4">
                 Test your Product Management mindset across strategy, execution, and ethics. 
                 Adapt to increasingly difficult scenarios.
             </p>
+            
+            <a 
+              href="https://dibyendupm.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-900/30 px-3 py-1.5 rounded-full border border-indigo-900/50 hover:border-indigo-500/50"
+            >
+              <span>Created by Dibyendu Tapadar</span>
+              <Globe className="w-3 h-3" />
+            </a>
         </div>
 
         <div className="space-y-6">
