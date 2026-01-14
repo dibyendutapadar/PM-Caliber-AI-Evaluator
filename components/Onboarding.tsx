@@ -3,7 +3,7 @@ import { Target, ArrowRight, Briefcase, Globe } from 'lucide-react';
 import { Level, LEVELS } from '../types';
 
 interface OnboardingProps {
-  onStart: (industry: string, product: string, questionCount: number, startingLevel: Level) => void;
+  onStart: (industry: string, product: string, questionCount: number, startingLevel: Level, customInstruction: string) => void;
   isLoading: boolean;
 }
 
@@ -12,10 +12,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, isLoading }) =>
   const [product, setProduct] = useState('B2C');
   const [questionCount, setQuestionCount] = useState(10);
   const [startingLevel, setStartingLevel] = useState<Level>('APM');
+  const [customInstruction, setCustomInstruction] = useState('');
 
   const handleStart = () => {
     if (industry && product) {
-      onStart(industry, product, questionCount, startingLevel);
+      onStart(industry, product, questionCount, startingLevel, customInstruction);
     }
   };
 
@@ -112,6 +113,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, isLoading }) =>
                     value={questionCount}
                     onChange={(e) => setQuestionCount(parseInt(e.target.value))}
                     className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                />
+            </div>
+
+            {/* Custom Instructions */}
+            <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Custom Scenario / Instructions (Optional)
+                </label>
+                <textarea
+                    value={customInstruction}
+                    onChange={(e) => setCustomInstruction(e.target.value)}
+                    placeholder="If you want the evaluator to start with a specific question or instruction, mention it here. (Irrelevant content will be ignored)"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-sm h-20 placeholder:text-slate-500"
                 />
             </div>
 

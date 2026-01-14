@@ -21,10 +21,10 @@ const App: React.FC = () => {
   const [pendingNextTurn, setPendingNextTurn] = useState<TurnData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleStart = async (industry: string, product: string, questionCount: number, startingLevel: Level) => {
+  const handleStart = async (industry: string, product: string, questionCount: number, startingLevel: Level, customInstruction: string) => {
     setIsLoading(true);
     try {
-      const firstQuestion = await startAssessment(industry, product, startingLevel);
+      const firstQuestion = await startAssessment(industry, product, startingLevel, customInstruction);
       
       const firstTurn: TurnData = {
         question: firstQuestion,
